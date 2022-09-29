@@ -20,17 +20,16 @@ const tokenIds = new Set(
 );
 
 (async () => {
-  let lastFetchTime = Date.now();
-  let timeToWait;
+  let lastFetchTime;
   while (tokenIds.size > 0) {
     try {
       const [tokenId] = tokenIds;
       const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/?force_update=true`;
 
-      timeToWait = 333 - Date.now() + lastFetchTime;
+      const timeToWait = 334 - Date.now() + (lastFetchTime || 0);
       if (timeToWait > 0) await new Promise(r => setTimeout(r, timeToWait));
-
       lastFetchTime = Date.now();
+
       const res = await fetch(url, {
         cache: 'reload',
         headers: {
