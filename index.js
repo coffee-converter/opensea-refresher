@@ -23,8 +23,8 @@ const tokenIds = new Set(
   let lastFetchTime;
   while (tokenIds.size > 0) {
     try {
-      const [tokenId] = tokenIds;
-      const url = `https://api.opensea.io/api/v1/asset/${address}/${tokenId}/?force_update=true`;
+      const [tid] = tokenIds;
+      const url = `https://api.opensea.io/api/v1/asset/${address}/${tid}/?force_update=true`;
 
       const timeToWait = 334 - Date.now() + (lastFetchTime || 0);
       if (timeToWait > 0) await new Promise(r => setTimeout(r, timeToWait));
@@ -37,20 +37,16 @@ const tokenIds = new Set(
         }
       });
 
-      if (res?.status !== 200) {
-        throw new Error(`${res?.status} ${res?.statusText}`);
-      }
-      else {
-        tokenIds.delete(tokenId);
-      }
+      if (res?.status === 200) tokenIds.delete(tid);
+      else throw new Error(`${res?.status} ${res?.statusText}`);
 
       process.stdout.clearLine(-1);
       process.stdout.cursorTo(0);
-      process.stdout.write(`TID ${tokenId}  ${(100 * (tokenId - startId + 1) / (endId - startId + 1)).toFixed(2)}%  ${address}  TTW=${timeToWait}`);
+      process.stdout.write(`TID ${tid}  ${(100 * (tid - startId + 1) / (endId - startId + 1)).toFixed(2)}%  ${address}  TTW=${timeToWait}`);
     }
     catch (err) {
       console.log();
-      console.error(err);
+      console.error(err.message || err);
     }
   }
   console.log();
