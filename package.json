@@ -1,0 +1,25 @@
+{
+  "name": "opensea-refresher",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^9.4.0",
+    "cross-fetch": "^3.1.5",
+    "dotenv": "^16.0.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coffee-converter/opensea-refresher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coffee-converter/opensea-refresher/issues"
+  },
+  "homepage": "https://github.com/coffee-converter/opensea-refresher#readme"
+}
