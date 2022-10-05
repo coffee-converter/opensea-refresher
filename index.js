@@ -12,7 +12,7 @@ const options = program.opts();
 console.log(options);
 
 const address = options.address;
-const startId = parseInt(options.start) || 1;
+const startId = options.start?.length ? parseInt(options.start) : 1;
 const endId = parseInt(options.end);
 
 const tokenIds = new Set(
