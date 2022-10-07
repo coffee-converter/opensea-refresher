@@ -15,25 +15,7 @@ const ADDRESS = options.address;
 const START_ID = parseInt(options.start) || 1;
 const END_ID = parseInt(options.end);
 
-const tokenIds = new Set(
-  Array.from({length: END_ID - START_ID + 1}).map((x, i) => START_ID + i)
-);
-
 const MARKETS = [
-  {
-    name: "LooksRare",
-    msDelay: 500,
-    url: (address, tid) => `https://api.looksrare.org/api/v1/tokens/refresh`,
-    fetchOpts: (address, tid) => ({
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'X-Looks-Api-Key': process.env.LOOKSRARE_API_KEY,
-      },
-      body: JSON.stringify({collection: address, tokenId: `${tid}`}),
-    }),
-  },
   {
     name: "OpenSea",
     msDelay: 334,
@@ -43,6 +25,20 @@ const MARKETS = [
       headers: {
         'X-API-KEY': process.env.OPENSEA_API_KEY,
       },
+    }),
+  },
+  {
+    name: "LooksRare",
+    msDelay: 600,
+    url: (address, tid) => `https://api.looksrare.org/api/v1/tokens/refresh`,
+    fetchOpts: (address, tid) => ({
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'X-Looks-Api-Key': process.env.LOOKSRARE_API_KEY,
+      },
+      body: JSON.stringify({collection: address, tokenId: `${tid}`}),
     }),
   },
 ];
@@ -55,6 +51,9 @@ const MARKETS = [
 
 async function refreshMarket (market) {
   console.log(`\n\n*** REFRESHING ${market.name} ***`);
+  const tokenIds = new Set(
+    Array.from({length: END_ID - START_ID + 1}).map((x, i) => START_ID + i)
+  );
   let lastFetchTime;
   while (tokenIds.size > 0) {
     try {
@@ -77,6 +76,7 @@ async function refreshMarket (market) {
     } catch (err) {
       console.log();
       console.error(err.message || err);
+      await new Promise(r => setTimeout(r, market.msDelay));
     }
   }
   console.log();
