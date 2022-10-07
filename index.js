@@ -18,7 +18,7 @@ const END_ID = parseInt(options.end);
 const MARKETS = [
   {
     name: "OpenSea",
-    msDelay: 334,
+    msDelay: 400,
     url: (address, tid) => `https://api.opensea.io/api/v1/asset/${address}/${tid}/?force_update=true`,
     fetchOpts: (address, tid) => ({
       cache: 'reload',
