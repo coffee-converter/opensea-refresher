@@ -11,43 +11,73 @@ program.parse();
 const options = program.opts();
 console.log(options);
 
-const address = options.address;
-const startId = options.start?.length ? parseInt(options.start) : 1;
-const endId = parseInt(options.end);
+const ADDRESS = options.address;
+const START_ID = parseInt(options.start) || 1;
+const END_ID = parseInt(options.end);
 
 const tokenIds = new Set(
-  Array.from({length: endId - startId + 1}).map((x, i) => startId + i)
+  Array.from({length: END_ID - START_ID + 1}).map((x, i) => START_ID + i)
 );
 
+const MARKETS = [
+  {
+    name: "LooksRare",
+    msDelay: 500,
+    url: (address, tid) => `https://api.looksrare.org/api/v1/tokens/refresh`,
+    fetchOpts: (address, tid) => ({
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+        'X-Looks-Api-Key': process.env.LOOKSRARE_API_KEY,
+      },
+      body: JSON.stringify({collection: address, tokenId: `${tid}`}),
+    }),
+  },
+  {
+    name: "OpenSea",
+    msDelay: 334,
+    url: (address, tid) => `https://api.opensea.io/api/v1/asset/${address}/${tid}/?force_update=true`,
+    fetchOpts: (address, tid) => ({
+      cache: 'reload',
+      headers: {
+        'X-API-KEY': process.env.OPENSEA_API_KEY,
+      },
+    }),
+  },
+];
+
 (async () => {
+  for (const market of MARKETS) {
+    await refreshMarket(market);
+  }
+})();
+
+async function refreshMarket (market) {
+  console.log(`\n\n*** REFRESHING ${market.name} ***`);
   let lastFetchTime;
   while (tokenIds.size > 0) {
     try {
       const [tid] = tokenIds;
-      const url = `https://api.opensea.io/api/v1/asset/${address}/${tid}/?force_update=true`;
+      const url = market.url(ADDRESS, tid);
+      const opts = market.fetchOpts(ADDRESS, tid);
 
-      const timeToWait = 334 - Date.now() + (lastFetchTime || 0);
+      const timeToWait = market.msDelay - Date.now() + (lastFetchTime || 0);
       if (timeToWait > 0) await new Promise(r => setTimeout(r, timeToWait));
       lastFetchTime = Date.now();
 
-      const res = await fetch(url, {
-        cache: 'reload',
-        headers: {
-          'X-API-KEY': process.env.OPENSEA_API_KEY
-        }
-      });
+      const res = await fetch(url, opts);
 
       if (res?.status === 200) tokenIds.delete(tid);
       else throw new Error(`${res?.status} ${res?.statusText}`);
 
       process.stdout.clearLine(-1);
       process.stdout.cursorTo(0);
-      process.stdout.write(`TID ${tid}  ${(100 * (tid - startId + 1) / (endId - startId + 1)).toFixed(2)}%  ${address}  TTW=${timeToWait}`);
-    }
-    catch (err) {
+      process.stdout.write(`${market.name}  TID ${tid}  ${(100 * (tid - START_ID + 1) / (END_ID - START_ID + 1)).toFixed(2)}%  ${ADDRESS}  TTW=${timeToWait}`);
+    } catch (err) {
       console.log();
       console.error(err.message || err);
     }
   }
   console.log();
-})();
+}
