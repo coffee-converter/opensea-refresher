@@ -27,20 +27,6 @@ const MARKETS = [
       },
     }),
   },
-  {
-    name: "LooksRare",
-    msDelay: 600,
-    url: (address, tid) => `https://api.looksrare.org/api/v1/tokens/refresh`,
-    fetchOpts: (address, tid) => ({
-      method: 'POST',
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json',
-        'X-Looks-Api-Key': process.env.LOOKSRARE_API_KEY,
-      },
-      body: JSON.stringify({collection: address, tokenId: `${tid}`}),
-    }),
-  },
 ];
 
 (async () => {
@@ -68,6 +54,10 @@ async function refreshMarket (market) {
       const res = await fetch(url, opts);
 
       if (res?.status === 200) tokenIds.delete(tid);
+      else if (res?.status === 404) {
+        tokenIds.delete(tid);
+        console.log(`\ntid ${tid} - HTTP 404`);
+      }
       else throw new Error(`${res?.status} ${res?.statusText}`);
 
       process.stdout.clearLine(-1);
